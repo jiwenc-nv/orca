@@ -10,6 +10,7 @@ import {
   type MacCapturedDigitChord
 } from '../../../../shared/macos-symbolic-hotkeys'
 import type { TuiAgent } from '../../../../shared/tui-agent'
+import { isCtrlCmdSwapEnabled } from '../../lib/install-modifier-remap'
 import type { ActivePluginCommand } from '@/store/plugin-panels'
 import { buildPluginCommandKeybindingDefinitions } from '@/lib/plugin-command-keybindings'
 import { disabledAgentTabActionIds, groupDefinitions, type ShortcutGroup } from './shortcut-groups'
@@ -54,7 +55,9 @@ export function buildShortcutDefinitionCatalog(options: {
     for (const actionId of conflict.actionIds) {
       conflictByAction.set(actionId, [
         ...(conflictByAction.get(actionId) ?? []),
-        `${formatKeybindingList([conflict.binding], options.platform)} conflicts with ${labels}.`
+        `${formatKeybindingList([conflict.binding], options.platform, {
+          swapCtrlCmd: isCtrlCmdSwapEnabled()
+        })} conflicts with ${labels}.`
       ])
     }
   }

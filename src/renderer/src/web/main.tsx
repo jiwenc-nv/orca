@@ -17,6 +17,7 @@ import {
   saveStoredWebRuntimeEnvironment
 } from './web-runtime-environment'
 import { installWebPreloadApi } from './web-preload-api'
+import { installCtrlCmdSwap } from '../lib/install-modifier-remap'
 import { I18nProvider } from '../i18n/I18nProvider'
 import { translate } from '../i18n/i18n'
 import { installOsFileDropCancellationGuard } from '../lib/os-file-drop-cancellation-guard'
@@ -24,6 +25,10 @@ import { installOsFileDropCancellationGuard } from '../lib/os-file-drop-cancella
 const disposeOsFileDropGuard = installOsFileDropCancellationGuard()
 import.meta.hot?.dispose(disposeOsFileDropGuard)
 const App = lazy(() => import('../App'))
+
+// Why: App syncs the remap setting on every surface, so without the listener here the web build
+// would invert shortcut glyphs while the keys themselves kept their unswapped behavior.
+installCtrlCmdSwap()
 
 function WebRoot(): React.JSX.Element {
   const initialPairingInput = useMemo(() => readPairingInputFromLocation(window.location), [])
