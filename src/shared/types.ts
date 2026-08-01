@@ -3,6 +3,7 @@ import type { ExecutionHostId } from './execution-host'
 import type { RemovedSshTargetTombstone, SshRemotePtyLease, SshTarget } from './ssh-types'
 import type { Automation, AutomationExecutionTargetType, AutomationRun } from './automations-types'
 import type { WorkspaceSource } from './workspace-source'
+import type { ModifierRemap } from './modifier-remap'
 import type { GitHubProjectSettings } from './github-project-types'
 import type {
   AgentStatusState,
@@ -2955,6 +2956,10 @@ export type GlobalSettings = {
   terminalMacOptionAsAltMigrated: boolean
   /** Whether macOS terminal input maps the physical JIS Yen (¥) key to backslash, per common terminal expectation. */
   terminalJISYenToBackslash: boolean
+  /** macOS-only iTerm-style modifier remap. 'swap-ctrl-cmd' exchanges Ctrl and Cmd on every key
+   *  event as it enters Orca, so app chords fire from Ctrl and Cmd reaches the PTY as a control
+   *  character. Native menu-role accelerators (Cmd+Q/C/V/X/Z/A) are OS-owned and stay on Cmd. */
+  modifierRemap: ModifierRemap
   experimentalMobile: boolean
   /** Why: iOS Simulator is default-on for capable macOS hosts; this is the durable off switch (hides UI, blocks CLI attach). */
   mobileEmulatorEnabled?: boolean
