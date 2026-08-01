@@ -1,3 +1,4 @@
+import type { ModifierRemap } from './modifier-remap'
 import type { NativeChatGlobalSettings } from './native-chat-appearance-settings'
 import type { ExecutionHostId } from './execution-host'
 import type { OrcaWorkspaceLayout } from './orca-workspace-layout'
@@ -447,6 +448,8 @@ export type GlobalSettings = NativeChatGlobalSettings & {
   terminalMacOptionAsAltMigrated: boolean
   /** Whether macOS terminal input maps the physical JIS Yen (¥) key to backslash, per common terminal expectation. */
   terminalJISYenToBackslash: boolean
+  /** macOS-only exchange of Ctrl and Cmd at the input boundary. */
+  modifierRemap: ModifierRemap
   experimentalMobile: boolean
   /** Why: iOS Simulator is default-on for capable macOS hosts; this is the durable off switch (hides UI, blocks CLI attach). */
   mobileEmulatorEnabled?: boolean

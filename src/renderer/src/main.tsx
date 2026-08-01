@@ -17,6 +17,7 @@ import {
 import { installAutomationHostDiagnostic } from './components/automations/automation-host-diagnostics'
 import { applyDocumentTheme } from './lib/document-theme'
 import { installTypingLatencyDiagnostic } from './lib/typing-latency/diagnostic'
+import { installCtrlCmdSwap } from './lib/install-modifier-remap'
 import { shouldEnableReactGrab } from './lib/react-grab-dev-gate'
 import { I18nProvider } from './i18n/I18nProvider'
 import { translate } from './i18n/i18n'
@@ -32,6 +33,8 @@ recordRendererCrashBreadcrumb('renderer_bootstrap_started', { dev: import.meta.e
 installRendererCrashDiagnostics()
 installTypingLatencyDiagnostic()
 installAutomationHostDiagnostic()
+// Why: must capture before App's keydown listener and xterm's textarea listeners; inert until enabled.
+installCtrlCmdSwap()
 
 if (
   import.meta.env.DEV &&

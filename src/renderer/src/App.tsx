@@ -1,3 +1,5 @@
+import { syncCtrlCmdSwapFromSettings } from './lib/install-modifier-remap'
+import { useAppStore } from './store'
 import { useCallback, useEffect } from 'react'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -34,6 +36,11 @@ import { useRuntimeGraphSync } from './app-shell/use-runtime-graph-sync'
 import { useWindowVisibilityEffects } from './app-shell/use-window-visibility-effects'
 
 function App(): React.JSX.Element {
+  const modifierRemap = useAppStore((state) => state.settings?.modifierRemap)
+  useEffect(() => {
+    syncCtrlCmdSwapFromSettings(modifierRemap)
+  }, [modifierRemap])
+
   const layout = useAppChromeLayout()
   const floatingWorkspace = useFloatingWorkspacePanel()
   const onboardingGate = useOnboardingAndFeatureTips()

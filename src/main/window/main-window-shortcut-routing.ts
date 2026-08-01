@@ -1,3 +1,4 @@
+import { applyCtrlCmdSwapToInput, isCtrlCmdSwapActive } from '../../shared/modifier-remap'
 import type { BrowserWindow } from 'electron'
 import { is } from '@electron-toolkit/utils'
 import {
@@ -111,10 +112,15 @@ export function installMainWindowShortcutRouting(args: {
     return true
   }
 
-  mainWindow.webContents.on('before-input-event', (event, input) => {
+  mainWindow.webContents.on('before-input-event', (event, rawInput) => {
     if (focus.isShortcutRecorderFocused()) {
       return
     }
+
+    const input = applyCtrlCmdSwapToInput(
+      rawInput,
+      isCtrlCmdSwapActive(store?.getSettings().modifierRemap, process.platform)
+    )
 
     if (input.type === 'keyDown' && is.dev && input.code === 'F12') {
       event.preventDefault()

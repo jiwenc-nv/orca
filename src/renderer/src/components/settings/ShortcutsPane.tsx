@@ -25,6 +25,7 @@ import { ShortcutFilterRail, type ShortcutFilter } from './ShortcutFilterRail'
 import { ShortcutRowsList } from './ShortcutRowsList'
 import { ShortcutTerminalPolicyControl } from './ShortcutTerminalPolicyControl'
 import { getTerminalShortcutPolicySearchEntry } from './shortcuts-search'
+import { ModifierRemapControl } from './ModifierRemapControl'
 import { matchesSettingsSearch } from './settings-search'
 import { clearRecordingActionForShortcutMutation } from './shortcut-recording-state'
 import {
@@ -303,6 +304,8 @@ export function ShortcutsPane(): React.JSX.Element {
             updateSettings={updateSettings}
           />
         ) : null}
+
+        <ModifierRemapControl />
 
         <SettingsSubsectionHeader
           title={translate(

@@ -1,3 +1,5 @@
+import { isCtrlCmdSwapActive } from '../../../shared/modifier-remap'
+import { isCtrlCmdSwapEnabled } from '../lib/install-modifier-remap'
 import {
   formatKeybinding,
   formatKeybindingList,
@@ -39,10 +41,11 @@ function memoizeShortcut<T>(
   actionId: KeybindingActionId,
   platform: NodeJS.Platform,
   overrides: KeybindingOverrides | undefined,
+  swapCtrlCmd: boolean,
   compute: () => T
 ): T {
   const cache = labelCache(overrides)
-  const key = `${platform}\u0000${kind}\u0000${actionId}`
+  const key = `${platform}\u0000${swapCtrlCmd}\u0000${kind}\u0000${actionId}`
   if (cache.has(key)) {
     return cache.get(key) as T
   }
@@ -53,28 +56,34 @@ function memoizeShortcut<T>(
 
 export function formatShortcutLabel(
   actionId: KeybindingActionId,
-  overrides?: KeybindingOverrides
+  overrides?: KeybindingOverrides,
+  swapCtrlCmd: boolean = isCtrlCmdSwapEnabled()
 ): string {
   const platform = getShortcutPlatform()
-  return memoizeShortcut('label', actionId, platform, overrides, () =>
-    formatKeybindingList(getEffectiveKeybindingsForAction(actionId, platform, overrides), platform)
+  return memoizeShortcut('label', actionId, platform, overrides, swapCtrlCmd, () =>
+    formatKeybindingList(
+      getEffectiveKeybindingsForAction(actionId, platform, overrides),
+      platform,
+      { swapCtrlCmd }
+    )
   )
 }
 
 export function formatPrimaryShortcutLabel(
   actionId: KeybindingActionId,
-  overrides?: KeybindingOverrides
+  overrides?: KeybindingOverrides,
+  swapCtrlCmd: boolean = isCtrlCmdSwapEnabled()
 ): string {
   const platform = getShortcutPlatform()
-  return memoizeShortcut('primary', actionId, platform, overrides, () => {
+  return memoizeShortcut('primary', actionId, platform, overrides, swapCtrlCmd, () => {
     const [binding] = getEffectiveKeybindingsForAction(actionId, platform, overrides)
-    return binding ? formatKeybindingList([binding], platform) : 'Unassigned'
+    return binding ? formatKeybindingList([binding], platform, { swapCtrlCmd }) : 'Unassigned'
   })
 }
 
 export function useShortcutLabel(actionId: KeybindingActionId): string {
   const keybindings = useAppStore((state) => state.keybindings)
-  return formatShortcutLabel(actionId, keybindings)
+  return formatShortcutLabel(actionId, keybindings, useSwapCtrlCmd())
 }
 
 // Why: returns null for unbound actions instead of the display sentinel
@@ -82,15 +91,16 @@ export function useShortcutLabel(actionId: KeybindingActionId): string {
 // UI logic to formatter copy (which may change or become localized).
 export function formatOptionalShortcutLabel(
   actionId: KeybindingActionId,
-  overrides?: KeybindingOverrides
+  overrides?: KeybindingOverrides,
+  swapCtrlCmd: boolean = isCtrlCmdSwapEnabled()
 ): string | null {
   const platform = getShortcutPlatform()
-  return memoizeShortcut('optional', actionId, platform, overrides, () => {
+  return memoizeShortcut('optional', actionId, platform, overrides, swapCtrlCmd, () => {
     const bindings = getEffectiveKeybindingsForAction(actionId, platform, overrides)
     if (bindings.length === 0) {
       return null
     }
-    return formatKeybindingList(bindings, platform)
+    return formatKeybindingList(bindings, platform, { swapCtrlCmd })
   })
 }
 
@@ -99,29 +109,31 @@ export function formatOptionalShortcutLabel(
 // comparing against formatter copy.
 export function formatOptionalPrimaryShortcutLabel(
   actionId: KeybindingActionId,
-  overrides?: KeybindingOverrides
+  overrides?: KeybindingOverrides,
+  swapCtrlCmd: boolean = isCtrlCmdSwapEnabled()
 ): string | null {
   const platform = getShortcutPlatform()
-  return memoizeShortcut('optionalPrimary', actionId, platform, overrides, () => {
+  return memoizeShortcut('optionalPrimary', actionId, platform, overrides, swapCtrlCmd, () => {
     const [binding] = getEffectiveKeybindingsForAction(actionId, platform, overrides)
-    return binding ? formatKeybindingList([binding], platform) : null
+    return binding ? formatKeybindingList([binding], platform, { swapCtrlCmd }) : null
   })
 }
 
 export function useOptionalShortcutLabel(actionId: KeybindingActionId): string | null {
   const keybindings = useAppStore((state) => state.keybindings)
-  return formatOptionalShortcutLabel(actionId, keybindings)
+  return formatOptionalShortcutLabel(actionId, keybindings, useSwapCtrlCmd())
 }
 
 export function formatShortcutKeyComboDetails(
   actionId: KeybindingActionId,
-  overrides?: KeybindingOverrides
+  overrides?: KeybindingOverrides,
+  swapCtrlCmd: boolean = isCtrlCmdSwapEnabled()
 ): ShortcutKeyComboDetails[] {
   const platform = getShortcutPlatform()
   // The returned array is shared across callers now, so treat it as read-only (every current caller does).
-  return memoizeShortcut('combo', actionId, platform, overrides, () =>
+  return memoizeShortcut('combo', actionId, platform, overrides, swapCtrlCmd, () =>
     getEffectiveKeybindingsForAction(actionId, platform, overrides).map((binding) => ({
-      keys: formatKeybinding(binding, platform),
+      keys: formatKeybinding(binding, platform, { swapCtrlCmd }),
       doubleTap: isDoubleTapBinding(binding)
     }))
   )
@@ -131,9 +143,14 @@ export function useShortcutKeyComboDetails(
   actionId: KeybindingActionId
 ): ShortcutKeyComboDetails[] {
   const keybindings = useAppStore((state) => state.keybindings)
-  return formatShortcutKeyComboDetails(actionId, keybindings)
+  return formatShortcutKeyComboDetails(actionId, keybindings, useSwapCtrlCmd())
 }
 
 export function useShortcutKeyDetails(actionId: KeybindingActionId): ShortcutKeyComboDetails {
   return useShortcutKeyComboDetails(actionId)[0] ?? { keys: [], doubleTap: false }
+}
+
+function useSwapCtrlCmd(): boolean {
+  const modifierRemap = useAppStore((state) => state.settings?.modifierRemap)
+  return isCtrlCmdSwapActive(modifierRemap, getShortcutPlatform())
 }
