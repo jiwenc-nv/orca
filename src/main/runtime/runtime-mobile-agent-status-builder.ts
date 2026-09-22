@@ -13,7 +13,7 @@ import {
 import type { RuntimeLeafRecord, RuntimePtyWorktreeRecord } from './runtime-terminal-state-records'
 import type { RuntimeAgentRowSnapshot } from './runtime-worktree-agent-rows'
 import {
-  classifyAgentTitle,
+  terminalTitleBlocksExplicitAgentStatus,
   getLatestAgentCandidateTitle,
   getLatestPtyTitle
 } from './runtime-worktree-status-projection'
@@ -63,10 +63,9 @@ export function buildRuntimeMobileAgentStatus(
           { title: leaf.lastOscTitle, updatedAt: leaf.lastOscTitleAt }
         )
       : null
-  const ptyTitleClassification = classifyAgentTitle(ptyTitle)
-  const nonAgentTitle = ptyTitle !== null && ptyTitleClassification !== 'agent'
-  if (nonAgentTitle) {
-    // Why: non-agent title = shell reclaimed the pane; suppress to clear stuck spinners (#1437), though a live hook signal survives.
+  const titleBlocksHookStatus = terminalTitleBlocksExplicitAgentStatus(ptyTitle)
+  if (titleBlocksHookStatus) {
+    // Shell/management titles can clear stale activity; neutral tmux titles cannot.
     const hasLiveHookSignal =
       retained?.payload.interactivePrompt != null ||
       retained?.payload.toolName != null ||
@@ -96,7 +95,8 @@ export function buildRuntimeMobileAgentStatus(
     ownerOptions
   )
   // Why: OSC 9999 hook payload carries real state/prompt/agent; without preferring it, hook-only transitions never surfaced (#7970).
-  const liveRow = retained ?? resolveRuntimeHookLiveAgentRow(hookRow.live, pty, nonAgentTitle)
+  const liveRow =
+    retained ?? resolveRuntimeHookLiveAgentRow(hookRow.live, pty, titleBlocksHookStatus)
   if (liveRow) {
     const liveStatus = normalizeCompatibleAgentStatusEntryForOwner(
       {

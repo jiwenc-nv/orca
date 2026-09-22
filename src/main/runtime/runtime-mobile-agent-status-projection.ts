@@ -167,7 +167,7 @@ export function selectRuntimeHookAgentRowForPane(
 export function resolveRuntimeHookLiveAgentRow(
   live: HookLiveAgentRow | null,
   pty: RuntimePtyWorktreeRecord | null,
-  nonAgentTitle: boolean
+  titleBlocksHookStatus: boolean
 ): HookLiveAgentRow | null {
   if (!live) {
     return null
@@ -177,7 +177,7 @@ export function resolveRuntimeHookLiveAgentRow(
   }
   // This is the pane's only wall-clock title timestamp comparable to when the hook evidence
   // was observed; replay delivery order must not make old evidence outrank a newer title.
-  return !nonAgentTitle &&
+  return !titleBlocksHookStatus &&
     agentStatusAuthorityObservedAt({
       updatedAt: live.updatedAt,
       evidenceObservedAt: live.evidenceObservedAt
