@@ -481,6 +481,29 @@ describe('external worktree visibility policy', () => {
 describe('agent scratch worktrees', () => {
   const scratchPath = '/repos/app/.claude/worktrees/agent-a04ccaaa55ddadb91'
 
+  it.each(['/tmp', '/tmp/IsaacCapture-pr1174-review-checkout', '/tmp/reviews/pr-1174/'])(
+    'hides temporary worktree %s even when external worktrees are shown',
+    (path) => {
+      const repo = makeRepo({ externalWorktreeVisibility: 'show' })
+      const settings = makeSettings()
+      expect(
+        toDetectedWorktree({
+          repo,
+          settings,
+          worktree: makeWorktree({ path, isMainWorktree: false }),
+          knownOrcaLayouts: buildKnownOrcaWorkspaceLayouts(settings, repo)
+        })
+      ).toMatchObject({ ownership: 'agent-scratch', visible: false })
+    }
+  )
+
+  it.each(['/tmp-project/review', '/repos/tmp/review', 'C:/tmp/review'])(
+    'does not hide unrelated temporary-looking path %s',
+    (path) => {
+      expect(createAgentScratchWorktreePathMatcher(['/repos/app'], [])(path)).toBe(false)
+    }
+  )
+
   it('classifies sub-agent scratch paths as agent-scratch without metadata', () => {
     const repo = makeRepo()
     const settings = makeSettings()

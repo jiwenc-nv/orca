@@ -28,7 +28,14 @@ export function createAgentScratchWorktreePathMatcher(
     checkoutPaths,
     configuredWorktreeBasePaths
   )
-  return (worktreePath) => classify(worktreePath)?.kind === 'built-in'
+  return (worktreePath) => {
+    const normalizedPath = normalizeRuntimePathForComparison(worktreePath)
+    // Match the host's POSIX path, including SSH hosts.
+    if (normalizedPath === '/tmp' || normalizedPath.startsWith('/tmp/')) {
+      return true
+    }
+    return classify(worktreePath)?.kind === 'built-in'
+  }
 }
 
 export function isAgentScratchWorktreePath(
